@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cobro
 
-## Getting Started
+Control de gastos compartidos y cobros personales: suscripciones (Spotify, YouTube, Meli+…), compras a meses sin intereses, préstamos y cargos únicos, **en ambos sentidos** (lo que te deben y lo que tú debes).
 
-First, run the development server:
+- **Panel del administrador:** saldos por persona, vencimientos, comprobantes por revisar, cola de recordatorios de WhatsApp, plataformas (costo vs. recuperado), compensación de saldos, respaldos.
+- **Portal del participante:** se abre con un enlace personal (sin contraseña), muestra su saldo y progreso, botón *Enterado*, subida de comprobantes y confirmación de pagos recibidos.
+- **Automático:** cron diario que genera cargos, aplica recargos, cierra deudas terminadas y crea recordatorios.
 
-```bash
+Stack: Next.js 16 · Drizzle ORM · Postgres (Neon) · Vercel · Tailwind. Costo: $0.
+
+## Inicio rápido (local)
+
+```powershell
+npm install
+npm run setup
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre http://localhost:3000/login (contraseña de desarrollo: `admin`) o el portal de ejemplo http://localhost:3000/p/demo-ana.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Documentación
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [Arquitectura y decisiones](docs/ARQUITECTURA.md): chatbot vs. web app, stack, modelo de datos, deudas en ambos sentidos.
+- [Guía de implementación paso a paso](docs/DESPLIEGUE.md): GitHub → Neon → Vercel → notificaciones → respaldos.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Comando | Qué hace |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run setup` | Migraciones + datos demo (local) |
+| `npm run db:migrate` | Aplica migraciones (`DATABASE_URL` o PGlite local) |
+| `npm run db:generate` | Genera una migración tras cambiar `src/db/schema.ts` |
+| `npm test` | Pruebas del motor de saldos y calendarios |
+| `npm run typecheck` / `npm run lint` | Verificaciones |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estructura
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  db/schema.ts        Tablas (participants, services, obligations, charges, payments, reminders…)
+  lib/ledger.ts       Motor de saldos (aplicación FIFO de pagos, saldo arrastrado, neto)
+  lib/schedule.ts     Calendario de periodos (MSI, suscripciones, fin de mes)
+  lib/jobs.ts         Proceso diario: cargos, recargos, recordatorios, resumen
+  lib/notify.ts       WhatsApp (wa.me / Cloud API), correo SMTP, CallMeBot
+  app/admin/          Panel del administrador
+  app/portal/         Portal del participante
+  app/p/[token]/      Entrada por enlace personal
+  app/api/            Cron, comprobantes, exportación
+drizzle/              Migraciones SQL
+scripts/              Migración y datos demo
+```

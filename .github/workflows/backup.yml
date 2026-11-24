@@ -1,0 +1,25 @@
+# Respaldo semanal: descarga el JSON completo y lo guarda como artefacto (90 días).
+# Requiere los secretos del repositorio APP_URL y CRON_SECRET.
+name: Respaldo semanal
+
+on:
+  schedule:
+    - cron: "0 14 * * 0" # domingos 08:00 hora de CDMX
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar respaldo
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/export?format=json" -o "cobro-$(date +%F).json"
+          ls -lh cobro-*.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cobro-respaldo
+          path: cobro-*.json
+          retention-days: 90

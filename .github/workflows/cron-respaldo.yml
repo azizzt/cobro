@@ -1,0 +1,19 @@
+# Alternativa/respaldo al Vercel Cron: llama al proceso diario desde GitHub.
+# Actívalo solo si no usas Vercel Cron (o si quieres una segunda ejecución;
+# es idempotente: no duplica cargos ni recordatorios del mismo día).
+name: Cron diario (GitHub)
+
+on:
+  # schedule:
+  #   - cron: "10 15 * * *" # 09:10 hora de CDMX
+  workflow_dispatch:
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ejecutar proceso diario
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/daily"
