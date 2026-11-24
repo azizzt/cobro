@@ -1,6 +1,6 @@
 import { config } from "dotenv";
-config({ path: ".env.local" });
-config();
+config({ path: ".env.local", quiet: true });
+config({ quiet: true });
 import { migrate as migratePg } from "drizzle-orm/postgres-js/migrator";
 import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
 import { drizzle as drizzlePg } from "drizzle-orm/postgres-js";
@@ -11,7 +11,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 async function main() {
-  const url = process.env.DATABASE_URL;
+  // Migraciones por la conexión directa (sin pooler), recomendado por Neon.
+  const url = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
   if (url) {
     const client = postgres(url, { prepare: false, max: 1 });
     await migratePg(drizzlePg(client), { migrationsFolder: "./drizzle" });

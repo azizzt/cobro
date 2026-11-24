@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.6.0",
+    "@neon/config": "^1.14.6",
+    "@neon/env": "^2.1.9",
     "drizzle-orm": "^0.45.4",
     "jose": "^6.2.18",
     "next": "16.4.6",
